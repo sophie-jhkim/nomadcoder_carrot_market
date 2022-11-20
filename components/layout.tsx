@@ -3,7 +3,7 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import { join } from "path";
 import React from "react";
-import { joinClass } from "../libs/utils";
+import { joinClass } from "../libs/client/utils";
 interface LayoutProps {
   title?: string;
   canGoBack?: boolean;

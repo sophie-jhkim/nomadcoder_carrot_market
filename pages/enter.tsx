@@ -1,21 +1,24 @@
 import { useState } from "react";
-import { joinClass } from "../libs/utils";
+import { joinClass } from "../libs/client/utils";
 import Button from "../components/button";
 import Input from "../components/input";
 import { useForm } from "react-hook-form"
+import useMutation from "../libs/client/useMutation";
 interface EnterForm{
   email?: string;
   phone?: string;
 }
 
 export default function Enter() {
+  const [enter, { loading, data, error }] = useMutation("/api/users/enter");
   const { register, handleSubmit, reset } = useForm();
   const [method, setMethod] = useState<"email" | "phone">("email");
   const onEmailClick = () => {setMethod("email"); reset();};
   const onPhoneClick = () => {setMethod("phone"); reset();};
 
-  const onValid = (data: EnterForm) =>{
-    console.log(data)
+  const onValid = (validForm: EnterForm) =>{
+    if(loading) return;
+    enter(validForm)
   }
   return (
     <div className="mt-16 px-4">
@@ -51,12 +54,14 @@ export default function Enter() {
         <form onSubmit={handleSubmit(onValid)} className="flex flex-col mt-8 space-y-4" >
           {method === "email" ? (
             <Input 
+            required
             register={register("email", {required: true})} 
             name="email" 
             label="Email address" type="email" />
           ) : null}
           {method === "phone" ? (
             <Input
+              required
               register={register("phone" ,{required: true})}
               name="phone"
               label="Phone number"
@@ -64,9 +69,9 @@ export default function Enter() {
               kind="phone"
             />
           ) : null}
-          {method === "email" ? <Button text={"Get login link"} /> : null}
+          {method === "email" ? <Button text={ loading? "Loading" : "Get login link"} /> : null}
           {method === "phone" ? (
-            <Button text={"Get one-time password"} />
+            <Button text={loading? "Loading" : "Get one-time password"} />
           ) : null}
         </form>
         <div className="mt-8">
