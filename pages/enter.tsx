@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { joinClass } from "@libs/client/utils";
 import Button from "@components/button";
 import Input from "@components/input";
 import { useForm } from "react-hook-form"
 import useMutation from "@libs/client/useMutation";
+import { useRouter } from "next/router";
 interface EnterForm{
   email?: string;
   phone?: string;
@@ -33,7 +34,13 @@ export default function Enter() {
     if(tokenLoading) return;
     confirmToken(validForm);
   }
-  console.log( data )
+
+  const router = useRouter()
+  useEffect(()=>{
+    if(tokenData?.ok){
+      router.push("/")
+    }
+  }, [tokenData, router])
   return (
     <div className="mt-16 px-4">
       <h3 className="text-3xl font-bold text-center">Enter to Carrot</h3>
@@ -45,7 +52,7 @@ export default function Enter() {
           register={tokenRegister("token", {required: true})} 
           name="token" 
           label="Confirmation Token" type="number" />
-          <Button text={loading? "Loading" : "Confirm Token"} />
+          <Button text={tokenLoading? "Loading" : "Confirm Token"} />
       </form>
         : <>
           <div className="flex flex-col items-center">
