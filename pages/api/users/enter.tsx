@@ -1,7 +1,7 @@
 import twilio from "twilio";
 import mail from "@sendgrid/mail";
 import client from "@libs/server/client";
-import withHandler, { ResposeType } from "@libs/server/withHandler";
+import withHandler, { ResponseType } from "@libs/server/withHandler";
 import { NextApiRequest, NextApiResponse } from "next";
 
 mail.setApiKey(process.env.SENDGRID_API_KEY!);
@@ -11,7 +11,7 @@ const twilioClient = twilio(process.env.TWILIO_SID, process.env.TWILIO_TOKEN);
 
 async function handler(
     req: NextApiRequest,
-    res: NextApiResponse<ResposeType>
+    res: NextApiResponse<ResponseType>
 ) {
     const {phone, email} = req.body;
     const user = phone? {phone: +phone} : email? {email} : null;

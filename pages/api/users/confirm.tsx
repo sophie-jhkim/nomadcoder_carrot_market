@@ -1,12 +1,12 @@
 
 import client from "@libs/server/client";
-import withHandler, { ResposeType } from "@libs/server/withHandler";
+import withHandler, { ResponseType } from "@libs/server/withHandler";
 import { withApiSession } from "@libs/server/withSession";
 import { NextApiRequest, NextApiResponse } from "next";
 
 async function handler(
     req: NextApiRequest,
-    res: NextApiResponse<ResposeType>
+    res: NextApiResponse<ResponseType>
 ) {
     const {token} = req.body;
     const foundToken = await client.token.findUnique({
@@ -27,4 +27,4 @@ async function handler(
     })
     res.json({ok:true});
 }
-export default withApiSession(withHandler({method: "POST",handler}));
+export default withApiSession(withHandler({method: "POST",handler, isPrivate: false}));
