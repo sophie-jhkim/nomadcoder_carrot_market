@@ -10,7 +10,7 @@ const fetcher = (url:string) => fetch(url).then((response) => response.json());
 
 export default function useUser(){
     const {data, error} = useSWR("/api/users/me", fetcher)
-/*     const [ user, setUser ] = useState();
+    const [ user, setUser ] = useState();
     const router = useRouter();
     useEffect(()=>{
         fetch("/api/users/me")
@@ -21,6 +21,6 @@ export default function useUser(){
             }
             setUser(data.profile);
         })
-    },[router]) */
+    },[router]) 
     return data
 }
