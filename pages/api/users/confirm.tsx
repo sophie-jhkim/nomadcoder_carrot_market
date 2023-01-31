@@ -9,7 +9,7 @@ async function handler(
     res: NextApiResponse<ResponseType>
 ) {
     const {token} = req.body;
-    const foundToken = await client.token.findUnique({
+    const foundToken = await client?.token.findUnique({
         where:{
             payload : token,
         },
@@ -20,11 +20,11 @@ async function handler(
         id : foundToken.userId
     }
     await req.session.save();
-    await client.token.deleteMany({
+    await client?.token.deleteMany({
         where :{
             userId : foundToken.userId
         }
     })
     res.json({ok:true});
 }
-export default withApiSession(withHandler({method: "POST",handler, isPrivate: false}));
+export default withApiSession(withHandler({methods: ["POST"],handler, isPrivate: false}));
