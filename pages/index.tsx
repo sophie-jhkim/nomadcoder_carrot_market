@@ -11,9 +11,14 @@ import { Product } from "@prisma/client";
 const fetcher = (url:string) => fetch(url).then((response) => response.json());
 /** 니꼬가 한거엔 fetcher가 없어도 나오던데 왜 난 있어야 나오지.... */
 
+export interface ProductWidthCount extends Product{
+    _count:{
+        fav: number;
+    }
+}
 interface ProductResponse {
     ok: boolean;
-    products: Product[]
+    products: ProductWidthCount[],
 }
 const Home: NextPage = () => {
     const { user, isLoading } = useUser();
@@ -31,8 +36,7 @@ const Home: NextPage = () => {
                         key={product.id}
                         title={product.name}
                         price={product.price}
-                        comments={1}
-                        hearts={1}
+                        hearts={product._count.fav || 0}
                     ></Item>
                 ))}
                 <FloatingButton href="/products/upload">
