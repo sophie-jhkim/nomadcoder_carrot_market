@@ -2,11 +2,12 @@ import type { NextPage } from "next";
 import Layout from "../../components/layout";
 import Button from "../../components/button";
 import { useRouter } from "next/router";
-import useSWR from "swr";
+import useSWR, { useSWRConfig } from "swr";
 import Link from "next/link";
 import { Product, User } from "@prisma/client";
 import useMutation from "@libs/client/useMutation";
 import { joinClass } from "@libs/client/utils";
+import useUser from "@libs/client/useUser";
 
 const fetcher = (url:string) => fetch(url).then((response) => response.json());
 // 아니 왜 나는 fetcher가 있어야만 나오는가...
@@ -18,15 +19,25 @@ interface ItemDetailResponse{
   ok: boolean;
   product:ProductWithUser;
   relatedProducts: Product[];
-  isLiked: Boolean
+  isLiked: boolean;
 }
 
 const ItemDetail: NextPage = () => {
+  const {user, isLoading} = useUser();
+  const {mutate } = useSWRConfig();
   const router = useRouter();
-  const {data, error} = useSWR<ItemDetailResponse>(router.query.id ? `/api/products/${router.query.id}` : null, fetcher);
+  const {data, mutate:boundMutate} = useSWR<ItemDetailResponse>(router.query.id ? `/api/products/${router.query.id}` : null, fetcher);
   const [toggleFav] = useMutation(`/api/products/${router.query.id}/fav`);
   const onFavClick = ()=>{
     toggleFav({})
+    if (!data) return;
+    // api fetch를 하지 않고 단순히 화면만 바꿔준다. 두번째 인자는 default true인데 true일경우 fetch를 다시함
+    boundMutate({...data, isLiked: !data.isLiked}, false);
+    // 받아올 data가 없을때 아래처럼 사용가능(아래 두개는 같은거 위에는 데이터를 넘겨받을때). 
+    // mutate("/api/users/me",(prev:any)=> ({ok: !prev.ok}), false);
+    // mutate("/api/users/me", {ok: false}, false);
+    // 아래처럼 할경우 그냥 단순 re fetch
+    // mutate("/api/users/me");
   }
   return (
     <Layout canGoBack>
