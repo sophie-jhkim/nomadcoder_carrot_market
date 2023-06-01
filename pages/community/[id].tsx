@@ -5,6 +5,8 @@ import { useRouter } from "next/router";
 import useSWR from "swr";
 import { Answer, Post, User } from "@prisma/client";
 import Link from "next/link";
+import useMutation from "@libs/client/useMutation";
+import { joinClass } from "@libs/client/utils";
 
 const fetcher = (url:string) => fetch(url).then((response) => response.json());
 // 아니 왜 나는 fetcher가 있어야만 나오는가...
@@ -18,18 +20,31 @@ interface PostWithUser extends Post{
     wondering: number,
     answer: number
   },
-  answer: AnswerWithUser[]
+  answer: AnswerWithUser[],
+
 }
 interface CommunityPostResponse {
   ok: boolean;
   post: PostWithUser,
+  isWondering: boolean
 
 }
 
 const CommunityPostDetail: NextPage = () => {
   const router = useRouter();
-  const {data, error} = useSWR<CommunityPostResponse>(router.query.id? `/api/posts/${router.query.id}` : null, fetcher);
-console.log(data)
+  const {data, mutate} = useSWR<CommunityPostResponse>(router.query.id? `/api/posts/${router.query.id}` : null, fetcher);
+
+  const [wonder] = useMutation(`/api/posts/${router.query.id}/wonder`);
+  const onWonderClick = ()=>{
+    if(!data) return;
+    // mutate 로컬에서 바로 반영할 수 있는 부분을 굳이 api호출하지 않고 반영해주기
+    mutate({
+      ...data, 
+      post: {...data.post, _count:{...data?.post._count, wondering : data.isWondering? data?.post._count.wondering - 1: data?.post._count.wondering + 1 }},
+      isWondering : !data.isWondering }, false);
+      wonder({})
+      console.log(wonder)
+  }
   return (
     <Layout canGoBack>
       <div>
@@ -39,7 +54,7 @@ console.log(data)
         <div className="flex mb-3 px-4 cursor-pointer pb-3  border-b items-center space-x-3">
           <div className="w-10 h-10 rounded-full bg-slate-300" />
           <div>
-            <p className="text-sm font-medium text-gray-700">{data?.post.user.name}</p>
+            <p className="text-sm font-medium text-gray-700">{data?.post?.user?.name}</p>
             <Link href={`/users/profiles/${data?.post?.user?.id}`}><a href="" className="text-xs font-medium text-gray-500">View profile &rarr;</a>
               </Link>
           </div>
@@ -49,7 +64,7 @@ console.log(data)
             <span className="text-orange-500 font-medium">Q.</span> {data?.post?.question}
           </div>
           <div className="flex px-4 space-x-5 mt-3 text-gray-700 py-2.5 border-t border-b-[2px]  w-full">
-            <span className="flex space-x-2 items-center text-sm">
+            <button onClick={onWonderClick} className={joinClass('flex space-x-2 items-center text-sm', data?.isWondering ? "text-green-600":'')}>
               <svg
                 className="w-4 h-4"
                 fill="none"
@@ -65,7 +80,7 @@ console.log(data)
                 ></path>
               </svg>
               <span>궁금해요 {data?.post?._count.wondering}</span>
-            </span>
+            </button>
             <span className="flex space-x-2 items-center text-sm">
               <svg
                 className="w-4 h-4"
@@ -92,7 +107,7 @@ console.log(data)
               <span className="text-sm block font-medium text-gray-700">
                 {answer.user.name}
               </span>
-              <span className="text-xs text-gray-500 block ">{answer.createdAt}</span>
+              <span className="text-xs text-gray-500 block ">{answer?.createdAt}</span>
               <p className="text-gray-700 mt-2">
                 {answer.answer}
               </p>
